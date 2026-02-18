@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width,initial-scale=1.0">
+        <title>Fraud Detection System</title>
+        <style>
+            body {font-family: sans-serif;display:flex;justify-content: center;height:100vh;background-color: #f0f2f5;}
+            .card {background : white;padding:2rem;border-radius:10px;box-shadow:0 4px 6px rgba(0,0,0,0.1); text-align: center;width:300px;}
+            input {padding:10px;width:80%;margin:10px 0;border:1px solid #ccc; border-radius:5px;}
+            button{
+                padding:10px 20px;
+                background-color:#007bff;
+                color:white;
+                border:none;
+                border-radius:5px;
+                cursor:pointer;
+                margin-top:10px;
+                width:100%;
+            }
+            button:hover {background-color:#0056b3;}
+            #result {margin-top:20px;font-weight: bold;}
+            .safe {color:green;}
+            .danger {color:red;}
+        </style>
+    </head>
+    <body>
+        <div class="card">
+            <h2> 🛡️Fraud Check</h2>
+            <p>Enter Transaction Amount($)</p>
+            <input type="number" id="amount" placeholder="e.g. 5000">
+            <button onclick="checkFraud()">Analyze Transaction</button>
+            <div id="result"></div>
+        </div>
+
+        <script>
+            async function checkFraud(){
+                const amount = document.getElementById('amount').value;
+                const resultDiv = document.getElementById('result');
+                if(!amount){
+                    resultDiv.innerHTML ="<span style='color:orange'>PLease enter anumber!</span>";
+                    return;
+                }
+                    resultDiv.innerHTML = " ⏳Analyzing with AI model...";
+                try{
+                    // connect frontend(5500)to (8000)
+                    const response = await fetch(`http://127.0.0.1:8000/api/predict/?amount=${amount}`);
+                    const data = await response.json();
+                    if (data.is_fraud){
+                        resultDiv.innerHTML = `<span class="danger"> 🚨 FRAUD DETECTED!<br>Risk Score: ${data.risk_score}</span>`;
+                    }else{
+                        resultDiv.innerHTML = `<span class="safe">✅ Transaction Safe<br> Risk Score:${data.risk_score}</span>`
+                    }
+                }catch (error){
+                        resultDiv.innerHTML =`<span style="color:orange"> ⚠️ Server Error. Is Django running on port 8000?</span>`;
+                        console.error(error);
+                    }
+                    }
+        </script>
+    </body>
+</html>
