@@ -16,9 +16,12 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from api.views import predict_fraud  # Import your view
+from api.views import predict_fraud, get_transactions, get_stats, seed_transactions
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/predict/', predict_fraud),  # This creates the link
-]
+    path('api/predict/', predict_fraud),
+    path('api/transactions/', get_transactions),
+    path('api/stats/', get_stats),
+    path('api/seed/', seed_transactions),
+]

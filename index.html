@@ -1,61 +1,1308 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width,initial-scale=1.0">
-        <title>Fraud Detection System</title>
-        <style>
-            body {font-family: sans-serif;display:flex;justify-content: center;height:100vh;background-color: #f0f2f5;}
-            .card {background : white;padding:2rem;border-radius:10px;box-shadow:0 4px 6px rgba(0,0,0,0.1); text-align: center;width:300px;}
-            input {padding:10px;width:80%;margin:10px 0;border:1px solid #ccc; border-radius:5px;}
-            button{
-                padding:10px 20px;
-                background-color:#007bff;
-                color:white;
-                border:none;
-                border-radius:5px;
-                cursor:pointer;
-                margin-top:10px;
-                width:100%;
-            }
-            button:hover {background-color:#0056b3;}
-            #result {margin-top:20px;font-weight: bold;}
-            .safe {color:green;}
-            .danger {color:red;}
-        </style>
-    </head>
-    <body>
-        <div class="card">
-            <h2> 🛡️Fraud Check</h2>
-            <p>Enter Transaction Amount($)</p>
-            <input type="number" id="amount" placeholder="e.g. 5000">
-            <button onclick="checkFraud()">Analyze Transaction</button>
-            <div id="result"></div>
-        </div>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🛡️ SentinelAI | Fraud Detection Dashboard</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            /* Dark Theme Variables (Default) */
+            --bg-color: #090d16;
+            --panel-bg: rgba(17, 24, 39, 0.7);
+            --panel-border: rgba(255, 255, 255, 0.07);
+            --text-primary: #f3f4f6;
+            --text-secondary: #9ca3af;
+            --text-muted: #6b7280;
+            --accent-color: #3b82f6;
+            --accent-hover: #2563eb;
+            --accent-glow: rgba(59, 130, 246, 0.35);
+            --success-color: #10b981;
+            --success-bg: rgba(16, 185, 129, 0.12);
+            --danger-color: #ef4444;
+            --danger-bg: rgba(239, 68, 68, 0.12);
+            --warning-color: #f59e0b;
+            --warning-bg: rgba(245, 158, 11, 0.12);
+            --glass-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.5);
+            --table-header-bg: rgba(20, 27, 45, 0.85);
+            --table-row-hover: rgba(30, 41, 59, 0.45);
+            --card-glow: 0 0 25px rgba(59, 130, 246, 0.08);
+            --sidebar-width: 280px;
+        }
 
-        <script>
-            async function checkFraud(){
-                const amount = document.getElementById('amount').value;
-                const resultDiv = document.getElementById('result');
-                if(!amount){
-                    resultDiv.innerHTML ="<span style='color:orange'>PLease enter anumber!</span>";
-                    return;
+        body.light-mode {
+            /* Light Theme Variables */
+            --bg-color: #f3f4f6;
+            --panel-bg: rgba(255, 255, 255, 0.8);
+            --panel-border: rgba(0, 0, 0, 0.08);
+            --text-primary: #111827;
+            --text-secondary: #4b5563;
+            --text-muted: #9ca3af;
+            --accent-color: #2563eb;
+            --accent-hover: #1d4ed8;
+            --accent-glow: rgba(37, 99, 235, 0.2);
+            --success-color: #059669;
+            --success-bg: rgba(5, 150, 105, 0.08);
+            --danger-color: #dc2626;
+            --danger-bg: rgba(220, 38, 38, 0.08);
+            --warning-color: #d97706;
+            --warning-bg: rgba(217, 119, 6, 0.08);
+            --glass-shadow: 0 10px 30px -5px rgba(31, 38, 135, 0.06);
+            --table-header-bg: rgba(229, 231, 235, 0.8);
+            --table-row-hover: rgba(243, 244, 246, 0.8);
+            --card-glow: 0 0 25px rgba(37, 99, 235, 0.04);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Glassmorphism utility class */
+        .glass-card {
+            background: var(--panel-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--panel-border);
+            border-radius: 16px;
+            box-shadow: var(--glass-shadow);
+            padding: 24px;
+            box-sizing: border-box;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            border-bottom: 1px solid var(--panel-border);
+            background: rgba(17, 24, 39, 0.3);
+            backdrop-filter: blur(8px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            font-size: 28px;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+        }
+
+        .logo-text {
+            font-family: 'Outfit', sans-serif;
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: var(--text-primary);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .status-badge-live {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--success-bg);
+            color: var(--success-color);
+            padding: 6px 14px;
+            border-radius: 9999px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .status-dot-pulse {
+            width: 8px;
+            height: 8px;
+            background-color: var(--success-color);
+            border-radius: 50%;
+            animation: pulse 1.8s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.9); opacity: 1; box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { transform: scale(1.1); opacity: 0.8; box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+            100% { transform: scale(0.9); opacity: 1; box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        .theme-toggle-btn {
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            color: var(--text-primary);
+            cursor: pointer;
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .theme-toggle-btn:hover {
+            background: var(--table-row-hover);
+        }
+
+        main {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 40px;
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+
+        /* Metric stats grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .stat-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: var(--glass-shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-color), #8b5cf6);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .stat-card:hover::after {
+            opacity: 1;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            transition: transform 0.2s ease;
+        }
+
+        .stat-info h3 {
+            font-size: 13px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-family: 'Outfit', sans-serif;
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .stat-icon {
+            font-size: 36px;
+            opacity: 0.85;
+            background: rgba(255,255,255,0.05);
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+        }
+
+        .latency-stat {
+            color: var(--accent-color);
+        }
+        .latency-stat.fast { color: var(--success-color); }
+        .latency-stat.medium { color: var(--warning-color); }
+        .latency-stat.slow { color: var(--danger-color); }
+
+        /* Dashboard content layout */
+        .dashboard-layout {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 30px;
+        }
+
+        .col-left {
+            grid-column: span 8;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .col-right {
+            grid-column: span 4;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        @media (max-width: 1200px) {
+            .col-left, .col-right {
+                grid-column: span 12;
+            }
+        }
+
+        .charts-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .charts-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .chart-box {
+            min-height: 320px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chart-box h3 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: var(--text-primary);
+        }
+
+        .chart-wrapper {
+            position: relative;
+            flex-grow: 1;
+            height: 240px;
+        }
+
+        /* Model profile panel styling */
+        .profile-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 12px;
+        }
+
+        .profile-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px dashed var(--panel-border);
+            font-size: 14px;
+        }
+
+        .profile-row:last-child {
+            border-bottom: none;
+        }
+
+        .profile-label {
+            color: var(--text-secondary);
+        }
+
+        .profile-val {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .profile-tag {
+            background: rgba(59, 130, 246, 0.15);
+            color: var(--accent-color);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .metrics-grid-mini {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        .metric-mini-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--panel-border);
+            border-radius: 10px;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .metric-mini-card p {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .metric-mini-card h4 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--accent-color);
+        }
+
+        /* Controls card styling */
+        .control-btn {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 12px 20px;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            cursor: pointer;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 14px var(--accent-glow);
+            transition: all 0.2s ease;
+        }
+
+        .control-btn:hover {
+            background: var(--accent-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px var(--accent-glow);
+        }
+
+        .control-btn:active {
+            transform: scale(0.98);
+        }
+
+        .control-btn.secondary {
+            background: transparent;
+            border: 1px solid var(--panel-border);
+            color: var(--text-primary);
+            box-shadow: none;
+            margin-top: 10px;
+        }
+
+        .control-btn.secondary:hover {
+            background: var(--table-row-hover);
+        }
+
+        .control-btn.danger {
+            background: var(--danger-bg);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: var(--danger-color);
+            box-shadow: none;
+            margin-top: 10px;
+        }
+
+        .control-btn.danger:hover {
+            background: rgba(239, 68, 68, 0.2);
+        }
+
+        .input-group {
+            margin-bottom: 16px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+
+        .input-group input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--panel-border);
+            padding: 12px;
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        body.light-mode .input-group input {
+            background: rgba(0, 0, 0, 0.02);
+        }
+
+        .input-group input:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+
+        /* History log table design */
+        .history-card {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .history-header h3 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .filter-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .search-input {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--panel-border);
+            color: var(--text-primary);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            outline: none;
+        }
+
+        body.light-mode .search-input {
+            background: rgba(0, 0, 0, 0.02);
+        }
+
+        .btn-filter-tag {
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            color: var(--text-secondary);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .btn-filter-tag.active {
+            background: var(--accent-color);
+            color: white;
+            border-color: var(--accent-color);
+        }
+
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+            border-radius: 12px;
+            border: 1px solid var(--panel-border);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        th {
+            background-color: var(--table-header-bg);
+            color: var(--text-secondary);
+            font-weight: 600;
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--panel-border);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--panel-border);
+            color: var(--text-primary);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr {
+            background-color: rgba(255,255,255,0.01);
+        }
+
+        tr:hover {
+            background-color: var(--table-row-hover);
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge.legit {
+            background-color: var(--success-bg);
+            color: var(--success-color);
+        }
+
+        .badge.fraud {
+            background-color: var(--danger-bg);
+            color: var(--danger-color);
+            animation: glow-pulse 2s infinite alternate;
+        }
+
+        @keyframes glow-pulse {
+            from { box-shadow: 0 0 4px rgba(239, 68, 68, 0.2); }
+            to { box-shadow: 0 0 10px rgba(239, 68, 68, 0.4); }
+        }
+
+        /* Pagination style */
+        .pagination-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .pagination-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-page {
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            color: var(--text-primary);
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn-page:hover {
+            background: var(--table-row-hover);
+        }
+
+        .btn-page:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        /* Notification banners */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 24px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+            transform: translateY(150%);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+        }
+
+        .toast.toast-success {
+            background: var(--success-bg);
+            border: 1px solid var(--success-color);
+            color: var(--success-color);
+        }
+
+        .toast.toast-danger {
+            background: var(--danger-bg);
+            border: 1px solid var(--danger-color);
+            color: var(--danger-color);
+        }
+
+        .empty-state {
+            padding: 40px;
+            text-align: center;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        /* Risk meter graphic */
+        .risk-bar-outer {
+            width: 100%;
+            height: 6px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 9999px;
+            overflow: hidden;
+            margin-top: 4px;
+        }
+        
+        body.light-mode .risk-bar-outer {
+            background: rgba(0,0,0,0.06);
+        }
+
+        .risk-bar-inner {
+            height: 100%;
+            border-radius: 9999px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Section -->
+    <header>
+        <div class="logo-section">
+            <span class="logo-icon">🛡️</span>
+            <span class="logo-text">SentinelAI</span>
+        </div>
+        <div class="header-actions">
+            <div class="status-badge-live">
+                <span class="status-dot-pulse"></span>
+                <span>Active Model Monitor</span>
+            </div>
+            <button class="theme-toggle-btn" onclick="toggleTheme()" id="themeBtn">
+                🌙 Dark Mode
+            </button>
+        </div>
+    </header>
+
+    <main>
+        <!-- Real-time Metrics Dashboard -->
+        <section class="stats-grid">
+            <div class="glass-card stat-card">
+                <div class="stat-info">
+                    <h3>Total Transactions</h3>
+                    <div class="stat-value" id="stat-total">0</div>
+                </div>
+                <div class="stat-icon" style="color: var(--accent-color);">💳</div>
+            </div>
+
+            <div class="glass-card stat-card">
+                <div class="stat-info">
+                    <h3>Total Volume Analyzed</h3>
+                    <div class="stat-value" id="stat-volume">$0</div>
+                </div>
+                <div class="stat-icon" style="color: #a855f7;">💰</div>
+            </div>
+
+            <div class="glass-card stat-card">
+                <div class="stat-info">
+                    <h3>Avg Risk Score</h3>
+                    <div class="stat-value" id="stat-risk">0.00%</div>
+                </div>
+                <div class="stat-icon" id="risk-icon" style="color: var(--warning-color);">⚖️</div>
+            </div>
+
+            <div class="glass-card stat-card">
+                <div class="stat-info">
+                    <h3>API Response Latency</h3>
+                    <div class="stat-value latency-stat fast" id="stat-latency">-- ms</div>
+                </div>
+                <div class="stat-icon" style="color: var(--success-color);">⚡</div>
+            </div>
+        </section>
+
+        <!-- Main Dashboard Split Content -->
+        <section class="dashboard-layout">
+            <!-- Left Side: Interactive Charts & Analytics -->
+            <div class="col-left">
+                <div class="glass-card charts-container">
+                    <div class="chart-box">
+                        <h3>Daily Transactions & Fraud Trends (30 Days)</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="trendChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-box">
+                        <h3>Model Prediction Risk Distribution</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="distributionChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- History Table Log -->
+                <div class="glass-card history-card">
+                    <div class="history-header">
+                        <h3>Transaction History Log</h3>
+                        <div class="filter-controls">
+                            <input type="number" class="search-input" id="search-min-amt" placeholder="Min Amount ($)" oninput="applyFilters()">
+                            <button class="btn-filter-tag active" onclick="setFraudFilter(this, 'all')">All</button>
+                            <button class="btn-filter-tag" onclick="setFraudFilter(this, 'fraud')">Fraud Only</button>
+                            <button class="btn-filter-tag" onclick="setFraudFilter(this, 'legit')">Legit Only</button>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table id="tx-table">
+                            <thead>
+                                <tr>
+                                    <th>Tx ID</th>
+                                    <th>Timestamp</th>
+                                    <th>Amount</th>
+                                    <th>Risk Confidence</th>
+                                    <th>Classification</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tx-table-body">
+                                <tr>
+                                    <td colspan="5" class="empty-state">No transactions loaded. Click 'Seed Mock Data' below to begin.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="pagination-container">
+                        <div id="pagination-info">Showing page 1 of 1</div>
+                        <div class="pagination-buttons">
+                            <button class="btn-page" id="btn-prev" onclick="changePage(-1)" disabled>&lt;</button>
+                            <button class="btn-page" id="btn-next" onclick="changePage(1)" disabled>&gt;</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side: Model Profile & Active Controls -->
+            <div class="col-right">
+                <!-- Model Performance Profile -->
+                <div class="glass-card">
+                    <div class="profile-title">🤖 Model Specifications</div>
+                    <div class="profile-row">
+                        <span class="profile-label">Algorithm</span>
+                        <span class="profile-val"><span class="profile-tag">Logistic Regression</span></span>
+                    </div>
+                    <div class="profile-row">
+                        <span class="profile-label">Library</span>
+                        <span class="profile-val">scikit-learn (v1.0+)</span>
+                    </div>
+                    <div class="profile-row">
+                        <span class="profile-label">Dataset</span>
+                        <span class="profile-val">Kaggle Credit Card Fraud</span>
+                    </div>
+                    <div class="profile-row">
+                        <span class="profile-label">Source Count</span>
+                        <span class="profile-val">284,807 transactions</span>
+                    </div>
+                    <div class="profile-row">
+                        <span class="profile-label">Target Features</span>
+                        <span class="profile-val">30 Columns (PCA + Amount)</span>
+                    </div>
+                    
+                    <div style="margin-top: 20px; font-weight: 600; font-size: 14px; border-top: 1px solid var(--panel-border); padding-top: 12px; color: var(--text-primary);">
+                        📈 Baseline Model Accuracy
+                    </div>
+                    <div class="metrics-grid-mini">
+                        <div class="metric-mini-card">
+                            <p>Accuracy</p>
+                            <h4>99.92%</h4>
+                        </div>
+                        <div class="metric-mini-card">
+                            <p>Precision</p>
+                            <h4>88.30%</h4>
+                        </div>
+                        <div class="metric-mini-card">
+                            <p>Recall</p>
+                            <h4>77.60%</h4>
+                        </div>
+                        <div class="metric-mini-card">
+                            <p>F1-Score</p>
+                            <h4>82.60%</h4>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Transaction Simulator & Seeder -->
+                <div class="glass-card">
+                    <div class="profile-title">⚙️ Control Center & Simulator</div>
+                    <div class="input-group">
+                        <label for="amount">Manual Transaction Amount ($)</label>
+                        <input type="number" id="amount" placeholder="Enter transaction value, e.g. 5000">
+                    </div>
+                    <button class="control-btn" onclick="checkFraudManual()">🔍 Analyze Transaction</button>
+                    
+                    <div style="margin-top: 20px; border-top: 1px solid var(--panel-border); padding-top: 15px;">
+                        <button class="control-btn secondary" onclick="simulateTransaction()">🎲 Simulate Random Transaction</button>
+                        <button class="control-btn secondary" onclick="seedHistory(250)">🌱 Seed 250 Historical Records</button>
+                        <button class="control-btn danger" onclick="clearDatabase()">🗑️ Reset Database</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Toast Notification Banner -->
+    <div id="toast" class="toast toast-success">
+        <span id="toast-icon">✅</span>
+        <span id="toast-message">Operation successful!</span>
+    </div>
+
+    <!-- Scripting for API Calls and Chart rendering -->
+    <script>
+        const API_BASE = window.location.origin.includes('8000') ? '' : 'http://127.0.0.1:8000';
+        let trendChart = null;
+        let distributionChart = null;
+        
+        let currentPage = 1;
+        const pageLimit = 10;
+        let currentFraudFilter = 'all';
+
+        // Dark/Light Mode Theme toggler
+        function toggleTheme() {
+            const body = document.body;
+            body.classList.toggle('light-mode');
+            const themeBtn = document.getElementById('themeBtn');
+            if (body.classList.contains('light-mode')) {
+                themeBtn.innerHTML = '☀️ Light Mode';
+                localStorage.setItem('theme', 'light');
+            } else {
+                themeBtn.innerHTML = '🌙 Dark Mode';
+                localStorage.setItem('theme', 'dark');
+            }
+            // Re-render charts with updated theme variable colors
+            refreshDashboard();
+        }
+
+        // Initialize theme settings from localStorage
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'light') {
+                document.body.classList.add('light-mode');
+                document.getElementById('themeBtn').innerHTML = '☀️ Light Mode';
+            }
+            refreshDashboard();
+        });
+
+        // Main Dashboard Refresh Orchestrator
+        async function refreshDashboard() {
+            await fetchStats();
+            await fetchTransactionHistory();
+        }
+
+        // Fetch aggregates & stats to load metrics and charts
+        async function fetchStats() {
+            const startFetchTime = performance.now();
+            try {
+                const response = await fetch(`${API_BASE}/api/stats/`);
+                const data = await response.json();
+                
+                const endFetchTime = performance.now();
+                updateLatencyMetric(endFetchTime - startFetchTime);
+
+                if (data.status === 'success') {
+                    // Update Stats Cards
+                    document.getElementById('stat-total').innerText = data.summary.total_count.toLocaleString();
+                    document.getElementById('stat-volume').innerText = '$' + data.summary.total_amount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                    document.getElementById('stat-risk').innerText = data.summary.fraud_rate.toFixed(2) + '%';
+                    
+                    const riskIcon = document.getElementById('risk-icon');
+                    if (data.summary.fraud_rate > 5) {
+                        riskIcon.innerText = '⚠️';
+                        riskIcon.parentElement.querySelector('.stat-value').style.color = 'var(--danger-color)';
+                    } else if (data.summary.fraud_rate > 2) {
+                        riskIcon.innerText = '⚖️';
+                        riskIcon.parentElement.querySelector('.stat-value').style.color = 'var(--warning-color)';
+                    } else {
+                        riskIcon.innerText = '🛡️';
+                        riskIcon.parentElement.querySelector('.stat-value').style.color = 'var(--success-color)';
+                    }
+
+                    // Render/Refresh Charts
+                    renderCharts(data.daily_trends, data.risk_distribution);
                 }
-                    resultDiv.innerHTML = " ⏳Analyzing with AI model...";
-                try{
-                    // connect frontend(5500)to (8000)
-                    const response = await fetch(`http://127.0.0.1:8000/api/predict/?amount=${amount}`);
-                    const data = await response.json();
-                    if (data.is_fraud){
-                        resultDiv.innerHTML = `<span class="danger"> 🚨 FRAUD DETECTED!<br>Risk Score: ${data.risk_score}</span>`;
-                    }else{
-                        resultDiv.innerHTML = `<span class="safe">✅ Transaction Safe<br> Risk Score:${data.risk_score}</span>`
+            } catch (err) {
+                console.error("Error fetching metrics:", err);
+            }
+        }
+
+        // Latency card UI update helper
+        function updateLatencyMetric(ms) {
+            const latencyElement = document.getElementById('stat-latency');
+            latencyElement.innerText = Math.round(ms) + ' ms';
+            
+            latencyElement.className = 'stat-value latency-stat';
+            if (ms < 50) {
+                latencyElement.classList.add('fast');
+            } else if (ms < 200) {
+                latencyElement.classList.add('medium');
+            } else {
+                latencyElement.classList.add('slow');
+            }
+        }
+
+        // Fetch transaction list and update table
+        async function fetchTransactionHistory() {
+            let url = `${API_BASE}/api/transactions/?page=${currentPage}&limit=${pageLimit}`;
+            if (currentFraudFilter === 'fraud') url += '&is_fraud=true';
+            if (currentFraudFilter === 'legit') url += '&is_fraud=false';
+            
+            const minAmt = document.getElementById('search-min-amt').value;
+            if (minAmt) url += `&min_amount=${minAmt}`;
+
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    const tbody = document.getElementById('tx-table-body');
+                    tbody.innerHTML = '';
+
+                    if (data.transactions.length === 0) {
+                        tbody.innerHTML = `<tr><td colspan="5" class="empty-state">No matching transactions found.</td></tr>`;
+                    } else {
+                        data.transactions.forEach(tx => {
+                            const date = new Date(tx.timestamp);
+                            const formattedDate = date.toLocaleString();
+                            const isFraud = tx.is_fraud;
+                            const badgeClass = isFraud ? 'badge fraud' : 'badge legit';
+                            const badgeText = isFraud ? '🚨 Fraudulent' : '✅ Safe';
+                            
+                            const riskPercentage = (tx.risk_score * 100).toFixed(1);
+                            const riskColor = tx.risk_score > 0.7 ? 'var(--danger-color)' : tx.risk_score > 0.3 ? 'var(--warning-color)' : 'var(--success-color)';
+
+                            tbody.innerHTML += `
+                                <tr>
+                                    <td><strong>#${tx.id}</strong></td>
+                                    <td style="color: var(--text-secondary); font-size:13px">${formattedDate}</td>
+                                    <td style="font-weight:600">$${tx.amount.toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
+                                    <td>
+                                        <div style="display:flex; align-items:center; gap:8px;">
+                                            <span style="font-weight:600; width: 45px; color:${riskColor}; font-size:13px;">${riskPercentage}%</span>
+                                            <div class="risk-bar-outer" style="width:70px; margin:0">
+                                                <div class="risk-bar-inner" style="width:${riskPercentage}%; background-color:${riskColor};"></div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td><span class="${badgeClass}">${badgeText}</span></td>
+                                </tr>
+                            `;
+                        });
                     }
-                }catch (error){
-                        resultDiv.innerHTML =`<span style="color:orange"> ⚠️ Server Error. Is Django running on port 8000?</span>`;
-                        console.error(error);
+
+                    // Handle Pagination controls
+                    const totalPages = Math.ceil(data.total_count / pageLimit) || 1;
+                    document.getElementById('pagination-info').innerText = `Showing page ${currentPage} of ${totalPages} (Total: ${data.total_count})`;
+                    
+                    document.getElementById('btn-prev').disabled = currentPage <= 1;
+                    document.getElementById('btn-next').disabled = currentPage >= totalPages;
+                }
+            } catch (err) {
+                console.error("Error fetching transactions:", err);
+            }
+        }
+
+        // Pagination navigators
+        function changePage(direction) {
+            currentPage += direction;
+            fetchTransactionHistory();
+        }
+
+        // Filter toggling
+        function setFraudFilter(btn, filter) {
+            document.querySelectorAll('.btn-filter-tag').forEach(t => t.classList.remove('active'));
+            btn.classList.add('active');
+            currentFraudFilter = filter;
+            currentPage = 1;
+            fetchTransactionHistory();
+        }
+
+        function applyFilters() {
+            currentPage = 1;
+            fetchTransactionHistory();
+        }
+
+        // Manual transaction entry
+        async function checkFraudManual() {
+            const amountInput = document.getElementById('amount');
+            const val = amountInput.value;
+            if (!val || parseFloat(val) <= 0) {
+                showToast("Please enter a valid amount!", "danger");
+                return;
+            }
+
+            const startRequest = performance.now();
+            try {
+                const response = await fetch(`${API_BASE}/api/predict/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ amount: parseFloat(val) })
+                });
+                
+                const data = await response.json();
+                const endRequest = performance.now();
+                updateLatencyMetric(endRequest - startRequest);
+
+                if (data.status === 'success') {
+                    if (data.is_fraud) {
+                        showToast(`🚨 High Risk Detected! Score: ${(data.risk_score * 100).toFixed(1)}%`, "danger");
+                    } else {
+                        showToast(`✅ Transaction Approved! Risk: ${(data.risk_score * 100).toFixed(1)}%`, "success");
                     }
+                    amountInput.value = '';
+                    refreshDashboard();
+                } else {
+                    showToast(`Error: ${data.error}`, "danger");
+                }
+            } catch (err) {
+                showToast("Server communication error.", "danger");
+            }
+        }
+
+        // Simulate individual random transaction
+        async function simulateTransaction() {
+            // Pick a random amount (mostly small, occasional high amount)
+            let val;
+            if (Math.random() < 0.88) {
+                val = (Math.random() * 250 + 5).toFixed(2);
+            } else {
+                val = (Math.random() * 5000 + 500).toFixed(2);
+            }
+
+            const startRequest = performance.now();
+            try {
+                const response = await fetch(`${API_BASE}/api/predict/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ amount: parseFloat(val) })
+                });
+                
+                const data = await response.json();
+                const endRequest = performance.now();
+                updateLatencyMetric(endRequest - startRequest);
+
+                if (data.status === 'success') {
+                    const typeText = data.is_fraud ? "🚨 Simulated FRAUD" : "✅ Simulated Safe";
+                    const statusClass = data.is_fraud ? "danger" : "success";
+                    showToast(`${typeText}: $${parseFloat(val).toLocaleString()} (Risk: ${(data.risk_score*100).toFixed(1)}%)`, statusClass);
+                    refreshDashboard();
+                }
+            } catch (err) {
+                showToast("Simulate transaction failed.", "danger");
+            }
+        }
+
+        // Seeding endpoint
+        async function seedHistory(count = 250) {
+            showToast("🌱 Seeding database. Please wait...", "success");
+            try {
+                const response = await fetch(`${API_BASE}/api/seed/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ count: count, clear: true })
+                });
+                const data = await response.json();
+                if (data.status === 'success') {
+                    showToast(`✅ Seeding Complete. Added ${data.count} records.`, "success");
+                    currentPage = 1;
+                    refreshDashboard();
+                } else {
+                    showToast(`Seeding error: ${data.error}`, "danger");
+                }
+            } catch (err) {
+                showToast("Server seeder request failed.", "danger");
+            }
+        }
+
+        // Clear transactions
+        async function clearDatabase() {
+            if (!confirm("Are you sure you want to clear all transactions from the database?")) return;
+            try {
+                const response = await fetch(`${API_BASE}/api/seed/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ count: 0, clear: true })
+                });
+                const data = await response.json();
+                if (data.status === 'success') {
+                    showToast("🧹 Database reset successful.", "success");
+                    currentPage = 1;
+                    refreshDashboard();
+                }
+            } catch (err) {
+                showToast("Reset failed.", "danger");
+            }
+        }
+
+        // Show feedback banner
+        function showToast(message, type = "success") {
+            const toast = document.getElementById('toast');
+            const toastIcon = document.getElementById('toast-icon');
+            const toastMsg = document.getElementById('toast-message');
+            
+            toastMsg.innerText = message;
+            if (type === 'danger') {
+                toast.className = 'toast toast-danger show';
+                toastIcon.innerText = '🚨';
+            } else {
+                toast.className = 'toast toast-success show';
+                toastIcon.innerText = '✅';
+            }
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3500);
+        }
+
+        // Chart.js renderer
+        function renderCharts(dailyTrends, riskDist) {
+            // Theme colors check
+            const isLight = document.body.classList.contains('light-mode');
+            const gridColor = isLight ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.05)';
+            const textPrimary = isLight ? '#1f2937' : '#f3f4f6';
+            const textSecondary = isLight ? '#6b7280' : '#9ca3af';
+
+            // Chart 1: Daily Trends Line Chart
+            const dates = dailyTrends.map(t => {
+                const d = new Date(t.date);
+                return d.toLocaleDateString(undefined, {month: 'short', day: 'numeric'});
+            });
+            const totals = dailyTrends.map(t => t.total_count);
+            const frauds = dailyTrends.map(t => t.fraud_count);
+
+            if (trendChart) {
+                trendChart.destroy();
+            }
+
+            const ctx1 = document.getElementById('trendChart').getContext('2d');
+            trendChart = new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [
+                        {
+                            label: 'Total Volume',
+                            data: totals,
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.05)',
+                            tension: 0.35,
+                            fill: true,
+                            borderWidth: 2.5
+                        },
+                        {
+                            label: 'Fraud Cases',
+                            data: frauds,
+                            borderColor: '#ef4444',
+                            backgroundColor: 'rgba(239, 68, 68, 0.05)',
+                            tension: 0.35,
+                            fill: true,
+                            borderWidth: 2.5
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: textPrimary, font: { family: 'Inter', weight: 500 } }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: textSecondary, font: { size: 10 } }
+                        },
+                        y: {
+                            grid: { color: gridColor },
+                            ticks: { color: textSecondary, font: { size: 10 } }
+                        }
                     }
-        </script>
-    </body>
+                }
+            });
+
+            // Chart 2: Risk distribution Histogram
+            const labels = ['0.0-0.1', '0.1-0.2', '0.2-0.3', '0.3-0.4', '0.4-0.5', '0.5-0.6', '0.6-0.7', '0.7-0.8', '0.8-0.9', '0.9-1.0'];
+            
+            if (distributionChart) {
+                distributionChart.destroy();
+            }
+
+            const ctx2 = document.getElementById('distributionChart').getContext('2d');
+            distributionChart = new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Transactions',
+                        data: riskDist,
+                        backgroundColor: riskDist.map((_, i) => {
+                            if (i >= 7) return 'rgba(239, 68, 68, 0.7)'; // High risk is red
+                            if (i >= 3) return 'rgba(245, 158, 11, 0.7)'; // Med risk is orange
+                            return 'rgba(16, 185, 129, 0.7)'; // Low risk is green
+                        }),
+                        borderRadius: 6,
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: textSecondary, font: { size: 10 } }
+                        },
+                        y: {
+                            grid: { color: gridColor },
+                            ticks: { color: textSecondary, font: { size: 10 } }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
 </html>
